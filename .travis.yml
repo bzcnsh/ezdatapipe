@@ -1,0 +1,15 @@
+---
+language: python
+python: "2.7"
+
+# Use the new container infrastructure
+sudo: false
+
+install:
+  - pip install pyyaml
+  - pip install Jinja2
+  - pip install toml
+
+script:
+  - python ezatapipe/test/test.py
+
