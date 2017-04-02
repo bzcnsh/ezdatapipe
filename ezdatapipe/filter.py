@@ -15,6 +15,7 @@ def filter_data_by_path(source, path, path_pattern, nodes):
     for p in path_pattern:
         if re.search(p, string_path):
             nodes.append(source)
+            break
     if isinstance(source, dict):
         for k in source:
             path.append(k)
