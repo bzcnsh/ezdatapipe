@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='ezdatapipe',
-    version='0.0.1',
+    version='0.0.2',
     description='collection of scripts for structured data processing',
     long_description=readme(),
     classifiers=[
