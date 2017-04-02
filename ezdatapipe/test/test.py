@@ -3,6 +3,9 @@ import os
 
 import unittest
 import ezdatapipe.utils
+import ezdatapipe.cmd
+import ezdatapipe.io
+import ezdatapipe.filter
 
 test_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -16,28 +19,32 @@ class UtilitiesTestCase(unittest.TestCase):
 
    def test_runProcess(self):
       cmd = ["echo", "test"]
-      rtn = ezdatapipe.utils.runProcess(cmd)
+      rtn = ezdatapipe.cmd.runProcess(cmd)
       expected = {'returncode': 0, 'stdout': "test\n", 'stderr': "", 'cmd': cmd}
       self.assertEqual(rtn, expected)
 
    def test_runProcessFromTemplate(self):
-      rtn = ezdatapipe.utils.runProcessFromTemplate(test_dir + '/runProcessFromTemplateTest', {'instring': 'test'})
+      rtn = ezdatapipe.cmd.runProcessFromTemplate(test_dir + '/runProcessFromTemplateTest', {'instring': 'test'})
       del rtn['cmd']
       expected = {'returncode': 0, 'stdout': "test\n", 'stderr': "", 'command_text': "#!/bin/bash\necho test"}
       self.assertEqual(rtn, expected)
 
    def test_runProcessFromTemplate_not_exist(self):
-      rtn = ezdatapipe.utils.runProcessFromTemplate(test_dir + '/runProcessFromTemplateTest_not_here', {'instring': 'test'})
+      rtn = ezdatapipe.cmd.runProcessFromTemplate(test_dir + '/runProcessFromTemplateTest_not_here', {'instring': 'test'})
       del rtn['cmd']
       expected = {'returncode': 1, 'stdout': "", 'stderr': "An exception of type TemplateNotFound occurred. Arguments:\n()"}
       self.assertEqual(rtn, expected)
 
    def test_runProcessFromTemplateString(self):
-      rtn = ezdatapipe.utils.runProcessFromTemplateString("#!/bin/bash\necho {{instring}}", {'instring': 'test'})
+      rtn = ezdatapipe.cmd.runProcessFromTemplateString("#!/bin/bash\necho {{instring}}", {'instring': 'test'})
       del rtn['cmd']
       expected = {'returncode': 0, 'stdout': "test\n", 'stderr': "", 'command_text': "#!/bin/bash\necho test"}
       self.assertEqual(rtn, expected)
 
+   def test_runProcessFromTemplateString_badtemplate(self):
+      rtn = ezdatapipe.cmd.runProcessFromTemplateString("", {'instringaaa': 'test'})
+      self.assertNotEqual(rtn['returncode'], 0)
+      self.assertTrue('exception' in rtn['stderr'])
    #write python dict to file
    #read data back
    def test_read_write_DataFile(self):
@@ -46,8 +53,15 @@ class UtilitiesTestCase(unittest.TestCase):
       self.assertEqual(self.write_read('/tmp/test.toml'), self.testdict)
 
    def write_read(self, filename):
-      ezdatapipe.utils.writeDataFile(filename, self.testdict)
-      return ezdatapipe.utils.readDataFile(filename)
+      ezdatapipe.io.writeDataFile(filename, self.testdict)
+      return ezdatapipe.io.readDataFile(filename)
+
+   def test_filter_data_by_path(self):
+      testdict = {'key1': 'val1', 'key2': 'val2', 'key3': ['text', {'key4': 'val4'}, 'text2'] }
+      nodes = []
+      ezdatapipe.filter.filter_data_by_path(testdict, [], ["\\.key4$"], nodes)
+      self.assertEqual(nodes, ['val4'])
+
 
 # def runProcess(cmd):
 # def runProcessFromTemplate(templateFile, templateVars):
